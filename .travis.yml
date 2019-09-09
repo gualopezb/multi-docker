@@ -1,0 +1,20 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t gualopezb/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run -e CI=true gualopezb/react-test npm test
+
+after_success:
+  - docker build -t gualopezb/multi-client ./client
+  - docker build -t gualopezb/multi-nginx ./nginx
+  - docker build -t gualopezb/multi-server ./server
+  - docker build -t gualopezb/multi-worker ./worker
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push gualopezb/multi-client
+  - docker push gualopezb/multi-nginx
+  - docker push gualopezb/multi-server
+  - docker push gualopezb/multi-worker
